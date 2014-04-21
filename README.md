@@ -7,7 +7,7 @@ A simple script to extract policies from a FortiGate configuration file to CSV
 
 Features
 --------
-The script comes in two languages : Perl and Python. 
+The script comes in two languages : Perl and Python.  
 The Python one is only a port of the Perl one, originally developped by Sebastian Knoop-Troullier aka 'firewallguru' and published on his blog http://firewallguru.blogspot.fr/2014/04/exporting-firewall-rules-to-csv.html
 
 Usage
