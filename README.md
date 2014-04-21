@@ -13,11 +13,11 @@ The Python one is only a port of the Perl one, originally developped by Sebastia
 Usage
 -----
 #### Python version  
-Pass the configuration file to the script with the -i options.
+Pass the configuration file to the script with the -i options.  
 The processed output is available in the 'policies-out.csv' (default) or in the specified file with the -o options.  
 
 #### Perl version  
-Pass the configuration file to the script this is the only supported argument.
+Pass the configuration file to the script this is the only supported argument.  
 The processed output is available in the 'policies-out.csv' file.  
 
 ### Options
