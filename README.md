@@ -12,11 +12,11 @@ The Python one is only a port of the Perl one, originally developped by Sebastia
 
 Usage
 -----
-Python version :
+#### Python version:  
 Pass the configuration file to the script with the -i options.
 The processed output is available in the 'policies-out.csv' (default) or in the specified file with the -o options.
 
-Perl version :
+#### Perl version:  
 Pass the configuration file to the script this is the only supported argument.
 The processed output is available in the 'policies-out.csv' file
 
@@ -44,6 +44,7 @@ Options:
 $ perl fgpoliciestocsv.pl <configuration_file.cfg>
 ```
 
+
 ### Examples
 ```
 $ cat example.cfg
@@ -62,7 +63,7 @@ config firewall policy
      next
 end
 
-$ fgpoliciestocsv -i example.cfg
+$ python fgpoliciestocsv.py -i example.cfg
 
 $ cat policies-out.csv
 id;srcintf;dstintf;srcaddr;dstaddr;action;schedule;service;logtraffic-app;webcache;nat
@@ -76,6 +77,7 @@ For a policy, an empty value in the 'action' column might mean 'deny', as this i
 Requirements
 ------------
 * python >= 2.4
+* perl
 
 Copyright and license
 ---------------------
