@@ -15,6 +15,7 @@ Usage
 #### Python version  
 Pass the configuration file to the script with the -i option.  
 The processed output is available in the 'policies-out.csv' (default) or in the specified file with the -o option.  
+Two similar python script were added allowing to export also address (IPv4 unicast only for now) or groups
 
 #### Perl version  
 Pass the configuration file to the script this is the only supported argument.  
