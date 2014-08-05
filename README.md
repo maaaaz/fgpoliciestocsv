@@ -3,19 +3,20 @@ fgpoliciestocsv
 
 Description
 -----------
-A simple script to extract policies from a FortiGate configuration file to CSV
+A collection of simple scripts to extract policies, groups and addresses from a FortiGate configuration file to CSV
 
 Features
 --------
-The script comes in two languages : Perl and Python.  
+The 'fgpoliciestocsv' script extracts policies and comes in two languages : Perl and Python.  
 The Python one is only a port of the Perl one, originally developped by Sebastian Knoop-Troullier aka 'firewallguru' and published on his blog http://firewallguru.blogspot.fr/2014/04/exporting-firewall-rules-to-csv.html
+
+Two other scripts 'fggroupstocsv' 'fgaddressestocsv' have been added to extract groups and addresses (IPv4 unicast only for now) and only come in Python.  
 
 Usage
 -----
 #### Python version  
-Pass the configuration file to the script with the -i option.  
-The processed output is available in the 'policies-out.csv' (default) or in the specified file with the -o option.  
-Two similar python script were added allowing to export also address (IPv4 unicast only for now) or groups
+Pass the configuration file to the scripts with the -i option.  
+The processed output is available in the 'policies-out.csv', 'addresses-out.csv', 'groups-out.csv' (default) or in the specified file with the -o option.  
 
 #### Perl version  
 Pass the configuration file to the script this is the only supported argument.  
@@ -94,3 +95,4 @@ Fortinet holds every rights about the FortiGate brand. I'm not affiliated nor em
 Credits
 -------
 * Sebastian Knoop-Troullier aka 'firewallguru'
+* Landry MINOZA aka 'hobgoblinsmaster'

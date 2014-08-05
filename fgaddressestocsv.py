@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# This file is part of fgaddressestocsv.
+# This file is part of fgpoliciestocsv.
 #
 # Copyright (C) 2014, Thomas Debize <tdebize at mail.com>
 # All rights reserved.
 #
-# fgaddressestocsv is free software: you can redistribute it and/or modify
+# fgpoliciestocsv is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# fgaddressestocsv is distributed in the hope that it will be useful,
+# fgpoliciestocsv is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with fgaddressestocsv.  If not, see <http://www.gnu.org/licenses/>.
+# along with fgpoliciestocsv.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
 import os
