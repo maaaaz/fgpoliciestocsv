@@ -74,7 +74,7 @@ id;srcintf;dstintf;srcaddr;dstaddr;action;schedule;service;logtraffic-app;webcac
 
 Notes
 -----
-For a policy, an empty value in the 'action' column might mean 'deny', as this is implicit in a FortiGate configuration file.
+For a policy, an empty value in the `action` column might mean `deny`, as this is implicit in a FortiGate configuration file.
 
 Requirements
 ------------
