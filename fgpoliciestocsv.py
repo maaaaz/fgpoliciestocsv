@@ -32,10 +32,14 @@ option_0 = { 'name' : ('-i', '--input-file'), 'help' : '<INPUT_FILE>: Fortigate 
 option_1 = { 'name' : ('-o', '--output-file'), 'help' : '<OUTPUT_FILE>: output csv file (default \'./policies-out.csv\')', 'default' : 'policies-out.csv', 'nargs' : 1}
 option_2 = { 'name' : ('-n', '--newline'), 'help' : '<NEWLINE> : insert a newline between each policy for better readability', 'action' : 'store_true', 'default' : False }
 option_3 = { 'name' : ('-s', '--skip-header'), 'help' : '<SKIP_HEADER> : do not print the csv header', 'action' : 'store_true', 'default' : False }
+option_4 = { 'name' : ('-v', '--with-vdom'), 'help' : '<WITH_VDOM> : Config file contains VDOM', 'action' : 'store_true', 'default' : False }
 
-options = [option_0, option_1, option_2, option_3]
+options = [option_0, option_1, option_2, option_3, option_4]
 
 # Handful patterns
+# -- Entering address definition block
+p_entering_vdom = re.compile('^\s*config vdom$', re.IGNORECASE)
+
 # -- Entering policy definition block
 p_entering_policy_block = re.compile('^\s*config firewall policy$', re.IGNORECASE)
 
@@ -52,7 +56,7 @@ p_policy_number = re.compile('^\s*edit\s+(?P<policy_number>\d+)', re.IGNORECASE)
 p_policy_set = re.compile('^\s*set\s+(?P<policy_key>\S+)\s+(?P<policy_value>.*)$', re.IGNORECASE)
 
 # Functions
-def parse(fd):
+def parse(fd, with_vdom):
 	"""
 		Parse the data according to several regexes
 		
@@ -60,9 +64,11 @@ def parse(fd):
 		@rtype:	return a list of policies ( [ {'id' : '1', 'srcintf' : 'internal', ...}, {'id' : '2', 'srcintf' : 'external', ...}, ... ] )  
 				and the list of unique seen keys ['id', 'srcintf', 'dstintf', ...]
 	"""
-	global p_entering_policy_block, p_exiting_policy_block, p_policy_next, p_policy_number, p_policy_set
+	global p_entering_policy_block, p_exiting_policy_block, p_policy_next, p_policy_number, p_policy_set, p_entering_vdom
 	
 	in_policy_block = False
+	in_vdom = False
+
 	
 	policy_list = []
 	policy_elem = {}
@@ -73,12 +79,28 @@ def parse(fd):
 		for line in fd_input:
 			line = line.lstrip().rstrip().strip()
 			
+			# Config_file contains vdom
+			if with_vdom:
+				# extract vdom name
+				if in_vdom:
+					cur_vdom = line.split (' ')[1]
+					if not('vdom' in order_keys): order_keys.append('vdom')
+					in_vdom = False
+	
+				# We match a vdom start
+				if p_entering_vdom.search(line):
+					in_vdom = True
+
 			# We match a policy block
 			if p_entering_policy_block.search(line):
 				in_policy_block = True
 			
 			# We are in a policy block
 			if in_policy_block:
+				# If config file contains vdom, add vdom name in front
+				if with_vdom:
+					policy_elem['vdom'] = cur_vdom
+					
 				if p_policy_number.search(line):
 					policy_number = p_policy_number.search(line).group('policy_number')
 					policy_elem['id'] = policy_number
@@ -142,7 +164,7 @@ def main(options, arguments):
 	if (options.input_file == None):
 		parser.error('Please specify a valid input file')
 				
-	results, keys = parse(options.input_file)
+	results, keys = parse(options.input_file, options.with_vdom)
 	generate_csv(results, keys, options.output_file, options.newline, options.skip_header)
 	
 	return
