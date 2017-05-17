@@ -29,7 +29,7 @@ from optparse import OptionParser
 
 # Options definition
 option_0 = { 'name' : ('-i', '--input-file'), 'help' : '<INPUT_FILE>: Fortigate configuration file. Ex: fgfw.cfg', 'nargs' : 1}
-option_1 = { 'name' : ('-o', '--output-file'), 'help' : '<OUTPUT_FILE>: output csv file (default \'./policies-out.csv\')', 'default' : 'policies-out.csv', 'nargs' : 1}
+option_1 = { 'name' : ('-o', '--output-file'), 'help' : '<OUTPUT_FILE>: output csv file (default \'./srvgroups-out.csv\')', 'default' : 'policies-out.csv', 'nargs' : 1}
 option_2 = { 'name' : ('-n', '--newline'), 'help' : '<NEWLINE> : insert a newline between each srvgroup for better readability', 'action' : 'store_true', 'default' : False }
 option_3 = { 'name' : ('-s', '--skip-header'), 'help' : '<SKIP_HEADER> : do not print the csv header', 'action' : 'store_true', 'default' : False }
 option_4 = { 'name' : ('-v', '--with-vdom'), 'help' : '<WITH_VDOM> : Config file contains VDOM', 'action' : 'store_true', 'default' : False }
