@@ -39,6 +39,7 @@ Options:
   -n, --newline         <NEWLINE> : insert a newline between each policy for
                         better readability
   -s, --skip-header     <SKIP_HEADER> : do not print the csv header
+  -v, --with-vdom       <WITH_VDOM> : Config file contains VDOM
 ```
 
 #### Perl
