@@ -29,7 +29,7 @@ from optparse import OptionParser
 
 # Options definition
 option_0 = { 'name' : ('-i', '--input-file'), 'help' : '<INPUT_FILE>: Fortigate configuration file. Ex: fgfw.cfg', 'nargs' : 1}
-option_1 = { 'name' : ('-o', '--output-file'), 'help' : '<OUTPUT_FILE>: output csv file (default \'./srvcustom-out.csv\')', 'default' : 'policies-out.csv', 'nargs' : 1}
+option_1 = { 'name' : ('-o', '--output-file'), 'help' : '<OUTPUT_FILE>: output csv file (default \'./srvcustom-out.csv\')', 'default' : 'srvcustom-out.csv', 'nargs' : 1}
 option_2 = { 'name' : ('-n', '--newline'), 'help' : '<NEWLINE> : insert a newline between each service for better readability', 'action' : 'store_true', 'default' : False }
 option_3 = { 'name' : ('-s', '--skip-header'), 'help' : '<SKIP_HEADER> : do not print the csv header', 'action' : 'store_true', 'default' : False }
 option_4 = { 'name' : ('-v', '--with-vdom'), 'help' : '<WITH_VDOM> : Config file contains VDOM', 'action' : 'store_true', 'default' : False }
@@ -41,19 +41,19 @@ options = [option_0, option_1, option_2, option_3, option_4]
 p_entering_vdom = re.compile('^\s*config vdom$', re.IGNORECASE)
 
 # -- Entering service definition block
-p_entering_service_block = re.compile('^\s*config firewall service custom$', re.IGNORECASE)
+p_entering_srvcustom_block = re.compile('^\s*config firewall service custom$', re.IGNORECASE)
 
 # -- Exiting service definition block
-p_exiting_service_block = re.compile('^end$', re.IGNORECASE)
+p_exiting_srvcustom_block = re.compile('^end$', re.IGNORECASE)
 
 # -- Commiting the current service definition and going to the next one
-p_service_next = re.compile('^next$', re.IGNORECASE)
+p_srvcustom_next = re.compile('^next$', re.IGNORECASE)
 
 # -- service number
-p_service_number = re.compile('^\s*edit\s+(?P<service_number>\d+)', re.IGNORECASE)
+p_srvcustom_name = re.compile('^\s*edit\s+(?P<srvcustom_name>.*)$', re.IGNORECASE)
 
 # -- service setting
-p_service_set = re.compile('^\s*set\s+(?P<service_key>\S+)\s+(?P<service_value>.*)$', re.IGNORECASE)
+p_srvcustom_set = re.compile('^\s*set\s+(?P<srvcustom_key>\S+)\s+(?P<srvcustom_value>.*)$', re.IGNORECASE)
 
 # Functions
 def parse(fd, with_vdom):
@@ -64,14 +64,15 @@ def parse(fd, with_vdom):
 		@rtype:	return a list of policies ( [ {'id' : '1', 'srcintf' : 'internal', ...}, {'id' : '2', 'srcintf' : 'external', ...}, ... ] )  
 				and the list of unique seen keys ['id', 'srcintf', 'dstintf', ...]
 	"""
-	global p_entering_service_block, p_exiting_service_block, p_service_next, p_service_number, p_service_set, p_entering_vdom
+	global p_entering_srvcustom_block, p_exiting_srvcustom_block, p_srvcustom_next, p_srvcustom_name, p_srvcustom_set, p_entering_vdom
 	
-	in_service_block = False
+	in_srvcustom_block = False
 	in_vdom = False
 
+	cur_vdom = ""
 	
-	service_list = []
-	service_elem = {}
+	srvcustom_list = []
+	srvcustom_elem = {}
 	
 	order_keys = []
 	
@@ -92,40 +93,42 @@ def parse(fd, with_vdom):
 					in_vdom = True
 
 			# We match a service block
-			if p_entering_service_block.search(line):
-				in_service_block = True
+			if p_entering_srvcustom_block.search(line):
+				in_srvcustom_block = True
 			
 			# We are in a service block
-			if in_service_block:
+			if in_srvcustom_block:
 				# If config file contains vdom, add vdom name in front
 				if with_vdom:
-					service_elem['vdom'] = cur_vdom
+					srvcustom_elem['vdom'] = cur_vdom
 					
-				if p_service_number.search(line):
-					service_number = p_service_number.search(line).group('service_number')
-					service_elem['id'] = service_number
-					if not('id' in order_keys): order_keys.append('id')
+				if p_srvcustom_name.search(line):
+					srvcustom_name = p_srvcustom_name.search(line).group('srvcustom_name').strip()
+					srvcustom_name = re.sub('["]', '', srvcustom_name)
+
+					srvcustom_elem['name'] = srvcustom_name
+					if not('name' in order_keys): order_keys.append('name')
 				
 				# We match a setting
-				if p_service_set.search(line):
-					service_key = p_service_set.search(line).group('service_key')
-					if not(service_key in order_keys): order_keys.append(service_key)
+				if p_srvcustom_set.search(line):
+					srvcustom_key = p_srvcustom_set.search(line).group('srvcustom_key')
+					if not(srvcustom_key in order_keys): order_keys.append(srvcustom_key)
 					
-					service_value = p_service_set.search(line).group('service_value').strip()
-					service_value = re.sub('["]', '', service_value)
+					srvcustom_value = p_srvcustom_set.search(line).group('srvcustom_value').strip()
+					srvcustom_value = re.sub('["]', '', srvcustom_value)
 					
-					service_elem[service_key] = service_value
+					srvcustom_elem[srvcustom_key] = srvcustom_value
 				
 				# We are done with the current service id
-				if p_service_next.search(line):
-					service_list.append(service_elem)
-					service_elem = {}
+				if p_srvcustom_next.search(line):
+					srvcustom_list.append(srvcustom_elem)
+					srvcustom_elem = {}
 			
 			# We are exiting the service block
-			if p_exiting_service_block.search(line):
-				in_service_block = False
+			if p_exiting_srvcustom_block.search(line):
+				in_srvcustom_block = False
 	
-	return (service_list, order_keys)
+	return (srvcustom_list, order_keys)
 
 
 def generate_csv(results, keys, fd, newline, skip_header):
