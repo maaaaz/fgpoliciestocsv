@@ -29,7 +29,7 @@ from optparse import OptionParser
 
 # Options definition
 option_0 = { 'name' : ('-i', '--input-file'), 'help' : '<INPUT_FILE>: Fortigate configuration file. Ex: fgfw.cfg', 'nargs' : 1}
-option_1 = { 'name' : ('-o', '--output-file'), 'help' : '<OUTPUT_FILE>: output csv file (default \'./srvgroups-out.csv\')', 'default' : 'policies-out.csv', 'nargs' : 1}
+option_1 = { 'name' : ('-o', '--output-file'), 'help' : '<OUTPUT_FILE>: output csv file (default \'./srvgroups-out.csv\')', 'default' : 'srvgroups-out.csv', 'nargs' : 1}
 option_2 = { 'name' : ('-n', '--newline'), 'help' : '<NEWLINE> : insert a newline between each srvgroup for better readability', 'action' : 'store_true', 'default' : False }
 option_3 = { 'name' : ('-s', '--skip-header'), 'help' : '<SKIP_HEADER> : do not print the csv header', 'action' : 'store_true', 'default' : False }
 option_4 = { 'name' : ('-v', '--with-vdom'), 'help' : '<WITH_VDOM> : Config file contains VDOM', 'action' : 'store_true', 'default' : False }
@@ -50,7 +50,7 @@ p_exiting_srvgroup_block = re.compile('^end$', re.IGNORECASE)
 p_srvgroup_next = re.compile('^next$', re.IGNORECASE)
 
 # -- srvgroup number
-p_srvgroup_number = re.compile('^\s*edit\s+(?P<srvgroup_number>\d+)', re.IGNORECASE)
+p_srvgroup_name = re.compile('^\s*edit\s+(?P<srvgroup_name>.*)$', re.IGNORECASE)
 
 # -- srvgroup setting
 p_srvgroup_set = re.compile('^\s*set\s+(?P<srvgroup_key>\S+)\s+(?P<srvgroup_value>.*)$', re.IGNORECASE)
@@ -64,12 +64,13 @@ def parse(fd, with_vdom):
 		@rtype:	return a list of policies ( [ {'id' : '1', 'srcintf' : 'internal', ...}, {'id' : '2', 'srcintf' : 'external', ...}, ... ] )  
 				and the list of unique seen keys ['id', 'srcintf', 'dstintf', ...]
 	"""
-	global p_entering_srvgroup_block, p_exiting_srvgroup_block, p_srvgroup_next, p_srvgroup_number, p_srvgroup_set, p_entering_vdom
+	global p_entering_srvgroup_block, p_exiting_srvgroup_block, p_srvgroup_next, p_srvgroup_name, p_srvgroup_set, p_entering_vdom
 	
 	in_srvgroup_block = False
 	in_vdom = False
 
-	
+	cur_vdom = ""
+    
 	srvgroup_list = []
 	srvgroup_elem = {}
 	
@@ -101,10 +102,12 @@ def parse(fd, with_vdom):
 				if with_vdom:
 					srvgroup_elem['vdom'] = cur_vdom
 					
-				if p_srvgroup_number.search(line):
-					srvgroup_number = p_srvgroup_number.search(line).group('srvgroup_number')
-					srvgroup_elem['id'] = srvgroup_number
-					if not('id' in order_keys): order_keys.append('id')
+				if p_srvgroup_name.search(line):
+					srvgroup_name = p_srvgroup_name.search(line).group('srvgroup_name').strip()
+					srvgroup_name = re.sub('["]', '', srvgroup_name)
+					
+					srvgroup_elem['name'] = srvgroup_name
+					if not('name' in order_keys): order_keys.append('name')
 				
 				# We match a setting
 				if p_srvgroup_set.search(line):
