@@ -32,10 +32,14 @@ option_0 = { 'name' : ('-i', '--input-file'), 'help' : '<INPUT_FILE>: Fortigate 
 option_1 = { 'name' : ('-o', '--output-file'), 'help' : '<OUTPUT_FILE>: output csv file (default \'./groups-out.csv\')', 'default' : 'groups-out.csv', 'nargs' : 1}
 option_2 = { 'name' : ('-n', '--newline'), 'help' : '<NEWLINE> : insert a newline between each group for better readability', 'action' : 'store_true', 'default' : False }
 option_3 = { 'name' : ('-s', '--skip-header'), 'help' : '<SKIP_HEADER> : do not print the csv header', 'action' : 'store_true', 'default' : False }
+option_4 = { 'name' : ('-v', '--with-vdom'), 'help' : '<WITH_VDOM> : Config file contains VDOM', 'action' : 'store_true', 'default' : False }
 
-options = [option_0, option_1, option_2, option_3]
+options = [option_0, option_1, option_2, option_3, option_4]
 
 # Handful patterns
+# -- Entering address definition block
+p_entering_vdom = re.compile('^\s*config vdom$', re.IGNORECASE)
+
 # -- Entering group definition block
 p_entering_group_block = re.compile('^\s*config firewall addrgrp$', re.IGNORECASE)
 
@@ -52,17 +56,18 @@ p_group_name = re.compile('^\s*edit\s+"(?P<group_name>.*)"$', re.IGNORECASE)
 p_group_set = re.compile('^\s*set\s+(?P<group_key>\S+)\s+(?P<group_value>.*)$', re.IGNORECASE)
 
 # Functions
-def parse(fd):
+def parse(fd, with_vdom):
 	"""
 		Parse the data according to several regexes
 		
 		@param fd:	input file descriptor
 		@rtype:	return a list of groups ( [ {'id' : '1', 'srcintf' : 'internal', ...}, {'id' : '2', 'srcintf' : 'external', ...}, ... ] )  
-				and the list of unique seen keys ['id', 'srcintf', 'dstintf', ...]
+		  and the list of unique seen keys ['id', 'srcintf', 'dstintf', ...]
 	"""
-	global p_entering_group_block, p_exiting_group_block, p_group_next, p_group_name, p_group_set
+	global p_entering_group_block, p_exiting_group_block, p_group_next, p_group_name, p_group_set, p_entering_vdom
 	
 	in_group_block = False
+	in_vdom = False
 	
 	group_list = []
 	group_elem = {}
@@ -73,12 +78,28 @@ def parse(fd):
 		for line in fd_input:
 			line = line.lstrip().rstrip().strip()
 			
+			# Config_file contains vdom
+			if with_vdom:
+				# extract vdom name
+				if in_vdom:
+					cur_vdom = line.split (' ')[1]
+					if not('vdom' in order_keys): order_keys.append('vdom')
+					in_vdom = False
+	
+				# We match a vdom start
+				if p_entering_vdom.search(line):
+					in_vdom = True
+
 			# We match a group block
 			if p_entering_group_block.search(line):
 				in_group_block = True
 			
 			# We are in a group block
 			if in_group_block:
+				# If config file contains vdom, add vdom name in front
+				if with_vdom:
+					group_elem['vdom'] = cur_vdom
+					
 				if p_group_name.search(line):
 					group_name = p_group_name.search(line).group('group_name')
 					group_elem['name'] = group_name
@@ -125,10 +146,10 @@ def generate_csv(results, keys, fd, newline, skip_header):
 				
 				for key in keys:
 					if key in group.keys():
-                                                if "member" == key:
-                                                    output_line.append("\n".join(group[key].split(" ")))
-                                                else:
-                                                    output_line.append(group[key])
+						if "member" == key:
+							output_line.append("\n".join(group[key].split(" ")))
+						else:
+							output_line.append(group[key])
 					else:
 						output_line.append('')
 			
@@ -146,7 +167,7 @@ def main(options, arguments):
 	if (options.input_file == None):
 		parser.error('Please specify a valid input file')
 				
-	results, keys = parse(options.input_file)
+	results, keys = parse(options.input_file, options.with_vdom)
 	generate_csv(results, keys, options.output_file, options.newline, options.skip_header)
 	
 	return
