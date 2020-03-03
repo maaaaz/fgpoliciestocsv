@@ -69,7 +69,7 @@ def parse(fd):
 	
 	order_keys = []
 	
-	with open(fd,'rb') as fd_input:
+	with open(fd,'rt') as fd_input:
 		for line in fd_input:
 			line = line.lstrip().rstrip().strip()
 			
@@ -113,7 +113,7 @@ def generate_csv(results, keys, fd, newline, skip_header):
 		@param fd : output file descriptor
 	"""
 	if results and keys:
-		with open(fd,'wb') as fd_output:
+		with open(fd,'wt') as fd_output:
 			#spamwriter = csv.writer(fd_output, delimiter=';', quoting=csv.QUOTE_ALL)
 			spamwriter = csv.writer(fd_output, delimiter=';')
 			
