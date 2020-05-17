@@ -55,19 +55,19 @@ else:
 
 # Handful patterns
 # -- Entering group definition block
-p_entering_group_block = re.compile(r'^\s*config firewall service ', re.IGNORECASE) #AngelOfTerror: Changed string to search for, now looks for "config firewall service *" which will match both the "config firewall service custom" and "config firewall service group" sections
+p_entering_service_block = re.compile(r'^\s*config firewall service ', re.IGNORECASE)
 
 # -- Exiting group definition block
-p_exiting_group_block = re.compile(r'^end$', re.IGNORECASE)
+p_exiting_service_block = re.compile(r'^end$', re.IGNORECASE)
 
 # -- Commiting the current group definition and going to the next one
-p_group_next = re.compile(r'^next$', re.IGNORECASE)
+p_service_next = re.compile(r'^next$', re.IGNORECASE)
 
 # -- Policy number
-p_group_name = re.compile(r'^\s*edit\s+"(?P<group_name>.*)"$', re.IGNORECASE)
+p_service_name = re.compile(r'^\s*edit\s+"(?P<service_name>.*)"$', re.IGNORECASE)
 
 # -- Policy setting
-p_group_set = re.compile(r'^\s*set\s+(?P<group_key>\S+)\s+(?P<group_value>.*)$', re.IGNORECASE)
+p_service_set = re.compile(r'^\s*set\s+(?P<service_key>\S+)\s+(?P<service_value>.*)$', re.IGNORECASE)
 
 # Functions
 def parse(options):
@@ -78,12 +78,12 @@ def parse(options):
         @rtype: return a list of groups ( [ {'id' : '1', 'srcintf' : 'internal', ...}, {'id' : '2', 'srcintf' : 'external', ...}, ... ] )  
                 and the list of unique seen keys ['id', 'srcintf', 'dstintf', ...]
     """
-    global p_entering_group_block, p_exiting_group_block, p_group_next, p_group_name, p_group_set
+    global p_entering_service_block, p_exiting_service_block, p_service_next, p_service_name, p_service_set
     
-    in_group_block = False
+    in_service_block = False
     
-    group_list = []
-    group_elem = {}
+    service_list = []
+    service_elem = {}
     
     order_keys = []
     
@@ -92,38 +92,38 @@ def parse(options):
             line = line.strip()
             
             # We match a group block
-            if p_entering_group_block.search(line):
-                in_group_block = True
+            if p_entering_service_block.search(line):
+                in_service_block = True
             
             # We are in a group block
-            if in_group_block:
-                if p_group_name.search(line):
-                    group_name = p_group_name.search(line).group('group_name')
-                    group_elem['name'] = group_name
+            if in_service_block:
+                if p_service_name.search(line):
+                    service_name = p_service_name.search(line).group('service_name')
+                    service_elem['name'] = service_name
                     if not('name' in order_keys):
                         order_keys.append('name')
                 
                 # We match a setting
-                if p_group_set.search(line):
-                    group_key = p_group_set.search(line).group('group_key')
-                    if not(group_key in order_keys):
-                        order_keys.append(group_key)
+                if p_service_set.search(line):
+                    service_key = p_service_set.search(line).group('service_key')
+                    if not(service_key in order_keys):
+                        order_keys.append(service_key)
                     
-                    group_value = p_group_set.search(line).group('group_value').strip()
-                    group_value = re.sub('["]', '', group_value)
+                    service_value = p_service_set.search(line).group('service_value').strip()
+                    service_value = re.sub('["]', '', service_value)
                     
-                    group_elem[group_key] = group_value
+                    service_elem[service_key] = service_value
                 
                 # We are done with the current group id
-                if p_group_next.search(line):
-                    group_list.append(group_elem)
-                    group_elem = {}
+                if p_service_next.search(line):
+                    service_list.append(service_elem)
+                    service_elem = {}
             
             # We are exiting the group block
-            if p_exiting_group_block.search(line):
-                in_group_block = False
+            if p_exiting_service_block.search(line):
+                in_service_block = False
     
-    return (group_list, order_keys)
+    return (service_list, order_keys)
 
 
 def generate_csv(results, keys, options):
