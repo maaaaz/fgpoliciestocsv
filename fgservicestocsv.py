@@ -39,7 +39,7 @@ parser = OptionParser(usage="%prog [options]")
 
 main_grp = OptionGroup(parser, 'Main parameters')
 main_grp.add_option('-i', '--input-file', help='Partial or full Fortigate configuration file. Ex: fgfw.cfg')
-main_grp.add_option('-o', '--output-file', help='Output csv file (default ./addresses-out.csv)', default=path.abspath(path.join(os.getcwd(), './addresses-out.csv')))
+main_grp.add_option('-o', '--output-file', help='Output csv file (default ./services-out.csv)', default=path.abspath(path.join(os.getcwd(), './services-out.csv')))
 main_grp.add_option('-s', '--skip-header', help='Do not print the csv header', action='store_true', default=False)
 main_grp.add_option('-n', '--newline', help='Insert a newline between each group for better readability', action='store_true', default=False)
 main_grp.add_option('-d', '--delimiter', help='CSV delimiter (default ";")', default=';')
@@ -54,20 +54,20 @@ else:
     fd_write_options = 'w'
 
 # Handful patterns
-# -- Entering address definition block
-p_entering_address_block = re.compile(r'^\s*config firewall address$', re.IGNORECASE)
+# -- Entering group definition block
+p_entering_group_block = re.compile(r'^\s*config firewall service ', re.IGNORECASE) #AngelOfTerror: Changed string to search for, now looks for "config firewall service *" which will match both the "config firewall service custom" and "config firewall service group" sections
 
-# -- Exiting address definition block
-p_exiting_address_block = re.compile(r'^end$', re.IGNORECASE)
+# -- Exiting group definition block
+p_exiting_group_block = re.compile(r'^end$', re.IGNORECASE)
 
-# -- Commiting the current address definition and going to the next one
-p_address_next = re.compile(r'^next$', re.IGNORECASE)
+# -- Commiting the current group definition and going to the next one
+p_group_next = re.compile(r'^next$', re.IGNORECASE)
 
 # -- Policy number
-p_address_name = re.compile(r'^\s*edit\s+"(?P<address_name>.*)"$', re.IGNORECASE)
+p_group_name = re.compile(r'^\s*edit\s+"(?P<group_name>.*)"$', re.IGNORECASE)
 
 # -- Policy setting
-p_address_set = re.compile(r'^\s*set\s+(?P<address_key>\S+)\s+(?P<address_value>.*)$', re.IGNORECASE)
+p_group_set = re.compile(r'^\s*set\s+(?P<group_key>\S+)\s+(?P<group_value>.*)$', re.IGNORECASE)
 
 # Functions
 def parse(options):
@@ -75,15 +75,15 @@ def parse(options):
         Parse the data according to several regexes
         
         @param options:  options
-        @rtype: return a list of addresses ( [ {'id' : '1', 'srcintf' : 'internal', ...}, {'id' : '2', 'srcintf' : 'external', ...}, ... ] )  
+        @rtype: return a list of groups ( [ {'id' : '1', 'srcintf' : 'internal', ...}, {'id' : '2', 'srcintf' : 'external', ...}, ... ] )  
                 and the list of unique seen keys ['id', 'srcintf', 'dstintf', ...]
     """
-    global p_entering_address_block, p_exiting_address_block, p_address_next, p_address_name, p_address_set
+    global p_entering_group_block, p_exiting_group_block, p_group_next, p_group_name, p_group_set
     
-    in_address_block = False
+    in_group_block = False
     
-    address_list = []
-    address_elem = {}
+    group_list = []
+    group_elem = {}
     
     order_keys = []
     
@@ -91,44 +91,44 @@ def parse(options):
         for line in fd_input:
             line = line.strip()
             
-            # We match a address block
-            if p_entering_address_block.search(line):
-                in_address_block = True
+            # We match a group block
+            if p_entering_group_block.search(line):
+                in_group_block = True
             
-            # We are in a address block
-            if in_address_block:
-                if p_address_name.search(line):
-                    address_name = p_address_name.search(line).group('address_name')
-                    address_elem['name'] = address_name
+            # We are in a group block
+            if in_group_block:
+                if p_group_name.search(line):
+                    group_name = p_group_name.search(line).group('group_name')
+                    group_elem['name'] = group_name
                     if not('name' in order_keys):
                         order_keys.append('name')
                 
                 # We match a setting
-                if p_address_set.search(line):
-                    address_key = p_address_set.search(line).group('address_key')
-                    if not(address_key in order_keys):
-                        order_keys.append(address_key)
+                if p_group_set.search(line):
+                    group_key = p_group_set.search(line).group('group_key')
+                    if not(group_key in order_keys):
+                        order_keys.append(group_key)
                     
-                    address_value = p_address_set.search(line).group('address_value').strip()
-                    address_value = re.sub('["]', '', address_value)
+                    group_value = p_group_set.search(line).group('group_value').strip()
+                    group_value = re.sub('["]', '', group_value)
                     
-                    address_elem[address_key] = address_value
+                    group_elem[group_key] = group_value
                 
-                # We are done with the current address id
-                if p_address_next.search(line):
-                    address_list.append(address_elem)
-                    address_elem = {}
+                # We are done with the current group id
+                if p_group_next.search(line):
+                    group_list.append(group_elem)
+                    group_elem = {}
             
-            # We are exiting the address block
-            if p_exiting_address_block.search(line):
-                in_address_block = False
+            # We are exiting the group block
+            if p_exiting_group_block.search(line):
+                in_group_block = False
     
-    return (address_list, order_keys)
+    return (group_list, order_keys)
 
 
 def generate_csv(results, keys, options):
     """
-        Generate a plain csv file
+        Generate a plain ';' separated csv file
     """
     if results and keys:
         with open(options.output_file, mode=fd_write_options) as fd_output:
@@ -137,12 +137,15 @@ def generate_csv(results, keys, options):
             if not(options.skip_header):
                 spamwriter.writerow(keys)
             
-            for address in results:
+            for group in results:
                 output_line = []
                 
                 for key in keys:
-                    if key in address.keys():
-                        output_line.append(address[key])
+                    if key in group.keys():
+                        if "member" == key:
+                            output_line.append("|".join(group[key].split(" ")))
+                        else:
+                            output_line.append(group[key])
                     else:
                         output_line.append('')
             
@@ -152,7 +155,7 @@ def generate_csv(results, keys, options):
         
         fd_output.close()
     
-    return None
+    return
 
 def main():
     """

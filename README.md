@@ -3,20 +3,21 @@ fgpoliciestocsv
 
 Description
 -----------
-A collection of simple scripts to extract policies, groups and addresses from a FortiGate configuration file to CSV
+A collection of simple scripts to extract policies, groups, addresses and services from a FortiGate configuration file to CSV
 
 Features
 --------
 The `fgpoliciestocsv` script extracts policies and comes in two languages : Perl and Python.  
-The Python one is only a port of the Perl one, originally developped by Sebastian Knoop-Troullier aka 'firewallguru' and published on his blog http://firewallguru.blogspot.fr/2014/04/exporting-firewall-rules-to-csv.html
+The Python one was originally a simple port of the Perl one developped by Sebastian Knoop-Troullier aka `firewallguru` and published on his blog http://firewallguru.blogspot.fr/2014/04/exporting-firewall-rules-to-csv.html
 
-Two other scripts `fggroupstocsv` and `fgaddressestocsv` have been added to extract groups and addresses (IPv4 unicast only for now) and only come in Python.  
+Three other scripts `fggroupstocsv`, `fgaddressestocsv`, `fgservicestocsv` have been added to extract groups, addresses (IPv4 unicast only for now) and services ; and only come in Python.
+
 
 Usage
 -----
 #### Python version  
 Pass the configuration file to the scripts with the -i option.  
-The processed output is available in the `policies-out.csv`, `addresses-out.csv`, `groups-out.csv` (default) or in the specified file with the -o option.  
+The processed output is available in the `policies-out.csv`, `addresses-out.csv`, `groups-out.csv`, `services-out.csv` (default) or in the specified file with the -o option.  
 
 #### Perl version  
 Pass the configuration file to the script this is the only supported argument.  
@@ -78,8 +79,8 @@ For a policy, an empty value in the `action` column might mean `deny`, as this i
 
 Requirements
 ------------
-* python >= 2.4
-* perl
+* Python >= 2.4
+* Perl
 
 Copyright and license
 ---------------------
@@ -94,5 +95,6 @@ Fortinet holds every rights about the FortiGate brand. I'm not affiliated nor em
 
 Credits
 -------
-* Sebastian Knoop-Troullier aka 'firewallguru'
-* Landry Minoza aka 'hobgoblinsmaster'
+* Sebastian Knoop-Troullier aka `firewallguru`
+* Landry Minoza aka `hobgoblinsmaster`
+* `AngelOfTerror`
