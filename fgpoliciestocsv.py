@@ -43,6 +43,7 @@ main_grp.add_option('-o', '--output-file', help='Output csv file (default ./poli
 main_grp.add_option('-s', '--skip-header', help='Do not print the csv header', action='store_true', default=False)
 main_grp.add_option('-n', '--newline', help='Insert a newline between each policy for better readability', action='store_true', default=False)
 main_grp.add_option('-d', '--delimiter', help='CSV delimiter (default ";")', default=';')
+main_grp.add_option('-e', '--encoding', help='input file encoding (default "utf8")', default='utf8')
 parser.option_groups.extend([main_grp])
 
 # Python 2 and 3 compatibility
@@ -90,7 +91,7 @@ def parse(options):
     
     order_keys = []
     
-    with open(options.input_file, mode=fd_read_options) as fd_input:
+    with open(options.input_file, mode=fd_read_options, encoding=options.encoding) as fd_input:
         for line in fd_input:
             line = line.strip()
             
