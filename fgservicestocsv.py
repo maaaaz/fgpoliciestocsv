@@ -23,8 +23,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from codecs import open
 from os import path 
+import io
 import sys
 import re
 import csv
@@ -43,11 +43,12 @@ main_grp.add_option('-o', '--output-file', help='Output csv file (default ./serv
 main_grp.add_option('-s', '--skip-header', help='Do not print the csv header', action='store_true', default=False)
 main_grp.add_option('-n', '--newline', help='Insert a newline between each group for better readability', action='store_true', default=False)
 main_grp.add_option('-d', '--delimiter', help='CSV delimiter (default ";")', default=';')
+main_grp.add_option('-e', '--encoding', help='Input file encoding (default "utf8")', default='utf8')
 parser.option_groups.extend([main_grp])
 
 # Python 2 and 3 compatibility
 if (sys.version_info < (3, 0)):
-    fd_read_options = 'rb'
+    fd_read_options = 'r'
     fd_write_options = 'wb'
 else:
     fd_read_options = 'r'
@@ -87,7 +88,7 @@ def parse(options):
     
     order_keys = []
     
-    with open(options.input_file, mode=fd_read_options) as fd_input:
+    with io.open(options.input_file, mode=fd_read_options, encoding=options.encoding) as fd_input:
         for line in fd_input:
             line = line.strip()
             
@@ -131,7 +132,7 @@ def generate_csv(results, keys, options):
         Generate a plain ';' separated csv file
     """
     if results and keys:
-        with open(options.output_file, mode=fd_write_options) as fd_output:
+        with io.open(options.output_file, mode=fd_write_options) as fd_output:
             spamwriter = csv.writer(fd_output, delimiter=options.delimiter, quoting=csv.QUOTE_ALL, lineterminator='\n')
             
             if not(options.skip_header):

@@ -26,20 +26,25 @@ The processed output is available in the `policies-out.csv` file.
 ### Options
 #### Python
 ```
-$ python fgpoliciestocsv.py  -h
+$ python fgpoliciestocsv.py -h
 Usage: fgpoliciestocsv.py [options]
 
 Options:
   -h, --help            show this help message and exit
-  -i INPUT_FILE, --input-file=INPUT_FILE
-                        <INPUT_FILE>: Fortigate configuration file. Ex:
+
+  Main parameters:
+    -i INPUT_FILE, --input-file=INPUT_FILE
+                        Partial or full Fortigate configuration file. Ex:
                         fgfw.cfg
-  -o OUTPUT_FILE, --output-file=OUTPUT_FILE
-                        <OUTPUT_FILE>: output csv file (default './policies-
-                        out.csv')
-  -n, --newline         <NEWLINE> : insert a newline between each policy for
-                        better readability
-  -s, --skip-header     <SKIP_HEADER> : do not print the csv header
+    -o OUTPUT_FILE, --output-file=OUTPUT_FILE
+                        Output csv file (default ./policies-out.csv)
+    -s, --skip-header   Do not print the csv header
+    -n, --newline       Insert a newline between each policy for better
+                        readability
+    -d DELIMITER, --delimiter=DELIMITER
+                        CSV delimiter (default ";")
+    -e ENCODING, --encoding=ENCODING
+                        Input file encoding (default "utf8")
 ```
 
 #### Perl
@@ -79,7 +84,7 @@ For a policy, an empty value in the `action` column might mean `deny`, as this i
 
 Requirements
 ------------
-* Python >= 2.4
+* Python >= 2.7
 * Perl
 
 Copyright and license
