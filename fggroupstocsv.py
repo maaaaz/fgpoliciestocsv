@@ -130,7 +130,7 @@ def generate_csv(results, keys, options):
         Generate a plain ';' separated csv file
     """
     if results and keys:
-        with io.open(options.output_file, mode=fd_write_options) as fd_output:
+        with io.open(options.output_file, mode=fd_write_options,encoding="UTF-8") as fd_output:
             spamwriter = csv.writer(fd_output, delimiter=options.delimiter, quoting=csv.QUOTE_ALL, lineterminator='\n')
             
             if not(options.skip_header):
