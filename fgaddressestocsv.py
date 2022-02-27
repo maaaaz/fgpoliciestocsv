@@ -3,7 +3,7 @@
 
 # This file is part of fgpoliciestocsv.
 #
-# Copyright (C) 2014, 2020, Thomas Debize <tdebize at mail.com>
+# Copyright (C) 2014, 2022, Thomas Debize <tdebize at mail.com>
 # All rights reserved.
 #
 # fgpoliciestocsv is free software: you can redistribute it and/or modify
@@ -43,7 +43,8 @@ main_grp.add_option('-o', '--output-file', help='Output csv file (default ./addr
 main_grp.add_option('-s', '--skip-header', help='Do not print the csv header', action='store_true', default=False)
 main_grp.add_option('-n', '--newline', help='Insert a newline between each group for better readability', action='store_true', default=False)
 main_grp.add_option('-d', '--delimiter', help='CSV delimiter (default ";")', default=';')
-main_grp.add_option('-e', '--encoding', help='Input file encoding (default "utf8")', default='utf8')
+main_grp.add_option('-e', '--input-encoding', help='Input file encoding (default "utf-8")', default='utf-8')
+main_grp.add_option('-f', '--output-encoding', help='Output file encoding (default "utf-8-sig" to make it easily viewable with MS Excel)', default='utf-8-sig')
 parser.option_groups.extend([main_grp])
 
 # Python 2 and 3 compatibility
@@ -88,7 +89,7 @@ def parse(options):
     
     order_keys = []
     
-    with io.open(options.input_file, mode=fd_read_options, encoding=options.encoding) as fd_input:
+    with io.open(options.input_file, mode=fd_read_options, encoding=options.input_encoding) as fd_input:
         for line in fd_input:
             line = line.strip()
             
@@ -132,7 +133,7 @@ def generate_csv(results, keys, options):
         Generate a plain csv file
     """
     if results and keys:
-        with io.open(options.output_file, mode=fd_write_options) as fd_output:
+        with io.open(options.output_file, mode=fd_write_options, encoding=options.output_encoding) as fd_output:
             spamwriter = csv.writer(fd_output, delimiter=options.delimiter, quoting=csv.QUOTE_ALL, lineterminator='\n')
             
             if not(options.skip_header):
@@ -165,7 +166,10 @@ def main():
     
     if (options.input_file == None):
         parser.error('Please specify a valid input file')
-                
+    
+    if (sys.version_info < (3, 0)):
+        options.output_encoding = None
+    
     results, keys = parse(options)
     generate_csv(results, keys, options)
     

@@ -43,8 +43,11 @@ Options:
                         readability
     -d DELIMITER, --delimiter=DELIMITER
                         CSV delimiter (default ";")
-    -e ENCODING, --encoding=ENCODING
-                        Input file encoding (default "utf8")
+    -e INPUT_ENCODING, --input-encoding=INPUT_ENCODING
+                        Input file encoding (default "utf-8")
+    -f OUTPUT_ENCODING, --output-encoding=OUTPUT_ENCODING
+                        Output file encoding (default "utf-8-sig" to make it
+                        easily viewable with MS Excel)
 ```
 
 #### Perl
