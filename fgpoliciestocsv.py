@@ -124,8 +124,12 @@ def parse(options):
                         order_keys.append(policy_key)
                     
                     policy_value = p_policy_set.search(line).group('policy_value').strip()
-                    policy_value = re.sub('["]', '', policy_value)
                     
+                    #new line for better lisibility
+                    if policy_key == "dstaddr" or policy_key == "srcaddr" or policy_key == "service":
+                        policy_value = policy_value.replace('" "',"\n")
+                    
+                    policy_value = re.sub('["]', '', policy_value)
                     
                     policy_elem[policy_key] = policy_value
                     if policy_key == 'action' and policy_value == 'ssl-vpn':
