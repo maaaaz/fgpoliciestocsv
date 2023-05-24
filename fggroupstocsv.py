@@ -110,7 +110,11 @@ def parse(options):
                     if not(group_key in order_keys): order_keys.append(group_key)
                     
                     group_value = p_group_set.search(line).group('group_value').strip()
-                    group_value = re.sub('["]', '', group_value)
+                    
+                    if group_key == "member":
+                        group_value = re.sub('^"|"$', '', group_value)
+                    else:
+                        group_value = re.sub('["]', '', group_value)
                     
                     group_elem[group_key] = group_value
                 
@@ -143,7 +147,7 @@ def generate_csv(results, keys, options):
                 for key in keys:
                     if key in group.keys():
                         if "member" == key:
-                            output_line.append("\n".join(group[key].split(" ")))
+                            output_line.append("\n".join(group[key].split('" "')))
                         else:
                             output_line.append(group[key])
                     else:
